@@ -1,0 +1,288 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ViralStudio IA</title>
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #0b0b12;
+  --panel: #171722;
+  --purple: #8b5cf6;
+  --text: #f5f3ff;
+  --muted: #aaa8bd;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+header {
+  padding: 22px 18px;
+  border-bottom: 1px solid #29283a;
+  background: #11111b;
+}
+.logo { font-size: 22px; font-weight: 800; }
+.logo span { color: #a78bfa; }
+header p { color: var(--muted); margin-bottom: 0; }
+main { max-width: 760px; margin: auto; padding: 20px 15px; }
+h1 { font-size: 27px; line-height: 1.2; }
+.intro { color: var(--muted); line-height: 1.6; }
+.tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+  margin: 22px 0;
+}
+.tab {
+  background: var(--panel);
+  color: white;
+  border: 1px solid #343247;
+  border-radius: 10px;
+  padding: 12px 5px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.tab.active {
+  border-color: var(--purple);
+  background: #30204d;
+}
+.card {
+  background: var(--panel);
+  border: 1px solid #302f43;
+  padding: 18px;
+  border-radius: 15px;
+  margin-bottom: 16px;
+}
+label {
+  display: block;
+  font-size: 14px;
+  margin: 15px 0 8px;
+  font-weight: 600;
+}
+input, textarea, select {
+  width: 100%;
+  padding: 13px;
+  border: 1px solid #39374e;
+  background: #10101a;
+  color: white;
+  border-radius: 9px;
+  font: inherit;
+}
+textarea { min-height: 115px; resize: vertical; }
+input[type="file"] { font-size: 12px; }
+button.primary {
+  width: 100%;
+  padding: 14px;
+  margin-top: 18px;
+  border: 0;
+  border-radius: 10px;
+  color: white;
+  background: linear-gradient(100deg, #7c3aed, #a855f7);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.hint { color: var(--muted); font-size: 12px; }
+#result { display: none; }
+#result h2 { font-size: 19px; }
+#output { white-space: pre-wrap; line-height: 1.65; }
+footer {
+  text-align: center;
+  color: var(--muted);
+  padding: 24px;
+  font-size: 12px;
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">🎬 ViralStudio <span>IA</span></div>
+  <p>Tu estudio creativo de videos con inteligencia artificial</p>
+</header>
+
+<main>
+  <h1>Crea videos que capturen miradas</h1>
+  <p class="intro">
+    Describe tu idea, prepara tus escenas y organiza tu próximo
+    video para TikTok, Reels o YouTube Shorts.
+  </p>
+
+  <div class="tabs">
+    <button class="tab active" data-mode="text">✍️ Desde texto</button>
+    <button class="tab" data-mode="image">🖼️ Desde imagen</button>
+    <button class="tab" data-mode="remix">🎞️ Remix</button>
+  </div>
+
+  <section class="card">
+    <h2 id="formTitle">Crear video desde una idea</h2>
+    <p class="hint" id="formHint">
+      Describe el video que imaginas.
+    </p>
+
+    <form id="creator">
+      <label for="idea">¿Qué video quieres crear?</label>
+      <textarea id="idea" required
+        placeholder="Ej.: Un pequeño zorro descubre un bosque mágico, con luces brillantes y una cámara cinematográfica."></textarea>
+
+      <div id="uploadArea" hidden>
+        <label for="media">Sube tu imagen o video de referencia</label>
+        <input id="media" type="file"
+          accept="image/*,video/*">
+        <p class="hint">
+          Seleccionar un archivo no genera ni modifica un video todavía.
+        </p>
+      </div>
+
+      <label for="duration">Duración deseada</label>
+      <select id="duration">
+        <option value="5">5 segundos</option>
+        <option value="10" selected>10 segundos</option>
+        <option value="15">15 segundos</option>
+      </select>
+
+      <label for="format">Formato</label>
+      <select id="format">
+        <option value="9:16">Vertical — TikTok, Reels, Shorts</option>
+        <option value="16:9">Horizontal — YouTube</option>
+        <option value="1:1">Cuadrado — publicaciones</option>
+      </select>
+
+      <label for="style">Estilo visual</label>
+      <select id="style">
+        <option>Cinematográfico</option>
+        <option>Realista</option>
+        <option>Animación 3D</option>
+        <option>Estilo viral dinámico</option>
+        <option>Publicidad de producto</option>
+      </select>
+
+      <button class="primary" type="submit">
+        ✨ Preparar mi plan de video
+      </button>
+    </form>
+  </section>
+
+  <section class="card" id="result">
+    <h2>✨ Tu plan de video</h2>
+    <p class="hint">
+      Borrador creado en tu navegador; todavía no es un video generado.
+    </p>
+    <div id="output"></div>
+    <button class="primary" id="copyButton" type="button">
+      Copiar plan de video
+    </button>
+  </section>
+</main>
+
+<footer>
+  ViralStudio IA · Tu creatividad, nuevas posibilidades
+</footer>
+
+<script>
+const tabs = document.querySelectorAll(".tab");
+const title = document.getElementById("formTitle");
+const hint = document.getElementById("formHint");
+const upload = document.getElementById("uploadArea");
+const idea = document.getElementById("idea");
+const media = document.getElementById("media");
+const result = document.getElementById("result");
+const output = document.getElementById("output");
+let mode = "text";
+
+const modes = {
+  text: {
+    title: "Crear video desde una idea",
+    hint: "Describe el video que imaginas.",
+    placeholder: "Describe tu historia, anuncio o idea..."
+  },
+  image: {
+    title: "Animar una imagen",
+    hint: "Elige una imagen y describe cómo quieres animarla.",
+    placeholder: "Ej.: La cámara se acerca lentamente al producto..."
+  },
+  remix: {
+    title: "Transformar un video",
+    hint: "Selecciona un video de referencia y describe los cambios.",
+    placeholder: "Ej.: Cambia el fondo por una playa al atardecer y conserva la acción principal..."
+  }
+};
+
+tabs.forEach(tab => {
+  tab.addEventListener("click", () => {
+    mode = tab.dataset.mode;
+    tabs.forEach(t => t.classList.toggle("active", t === tab));
+    title.textContent = modes[mode].title;
+    hint.textContent = modes[mode].hint;
+    idea.placeholder = modes[mode].placeholder;
+    upload.hidden = mode === "text";
+    media.accept = mode === "image" ? "image/*" : "video/*";
+    media.value = "";
+    media.required = false;
+    result.style.display = "none";
+  });
+});
+
+document.getElementById("creator").addEventListener("submit", e => {
+  e.preventDefault();
+
+  const duration = document.getElementById("duration").value;
+  const format = document.getElementById("format").value;
+  const style = document.getElementById("style").value;
+  const descriptions = {
+    text: "Crear un video nuevo desde el concepto descrito.",
+    image: "Usar la imagen como referencia para planificar una animación.",
+    remix: "Planificar una transformación del video de referencia."
+  };
+
+  const plan = [
+    "VIRALSTUDIO IA — PLAN DE VIDEO",
+    "",
+    "OBJETIVO: " + descriptions[mode],
+    "IDEA: " + idea.value.trim(),
+    "DURACIÓN: " + duration + " segundos",
+    "FORMATO: " + format,
+    "ESTILO: " + style,
+    "",
+    "ESCENA 1 — APERTURA",
+    "Presentar el sujeto principal con una imagen llamativa.",
+    "",
+    "ESCENA 2 — DESARROLLO",
+    "Mostrar la acción principal y mantener el foco visual.",
+    "",
+    "ESCENA 3 — CIERRE",
+    "Terminar con una imagen memorable y adecuada al objetivo.",
+    "",
+    "CÁMARA: movimientos fluidos y encuadres claros.",
+    "AUDIO: planificar música y efectos adecuados.",
+    "",
+    "Este plan es un borrador inicial. Debe revisarse y ajustarse."
+  ].join("\n");
+
+  output.textContent = plan;
+  result.style.display = "block";
+  result.scrollIntoView({ behavior: "smooth", block: "start" });
+});
+
+document.getElementById("copyButton").addEventListener("click", async () => {
+  const text = output.textContent;
+  try {
+    await navigator.clipboard.writeText(text);
+    document.getElementById("copyButton").textContent = "¡Plan copiado!";
+  } catch {
+    const area = document.createElement("textarea");
+    area.value = text;
+    document.body.appendChild(area);
+    area.select();
+    document.execCommand("copy");
+    area.remove();
+    document.getElementById("copyButton").textContent = "¡Plan copiado!";
+  }
+});
+</script>
+</body>
+</html>
